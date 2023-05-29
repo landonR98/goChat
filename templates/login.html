@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {{template "Head1"}}
+</head>
+
+<body>
+  {{template "Header"}}
+
+  <main class="center-content">
+    <div class="card">
+      <h2>Login</h2>
+      <form action="/login" method="POST">
+        {{if .FormError}}
+        <h6 class="form-error">*username or password is incorrect</h6>
+        {{end}}
+        <label>name:<input type="text" name="name" value="{{.Name}}" required></label><br>
+        <label>password:&nbsp;<input type="password" name="password" value="{{.Password}}" required></label><br>
+        <input type="submit" value="login">
+      </form>
+    </div>
+  </main>
+</body>
+
+</html>

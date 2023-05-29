@@ -1,0 +1,10 @@
+{{define "Header"}}
+<header>
+  <h1>GoChat</h1>
+  {{if .LoggedIn}}
+  <div>
+    <h2>{{.Name}}</h2>
+  </div>
+  {{end}}
+</header>
+{{end}}
