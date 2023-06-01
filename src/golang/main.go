@@ -22,6 +22,7 @@ func main() {
 	LoadEnv()
 
 	DatabaseInit()
+	defer DB.Close()
 
 	templates := template.Must(template.ParseGlob("templates/*.html"))
 

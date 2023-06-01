@@ -98,14 +98,39 @@ input[type="submit"]:hover {
   height: 100%;
 }
 
-.chat-rooms {
+.tabs {
+  display: flex;
+  overflow-y: auto;
+}
+.tabs > p {
+  border-style: solid;
+  border-color: var(--color2);
+  border-width: 3px 2px 0;
+  border-top-right-radius: 20%;
+  margin: 0;
+  padding: 0 2px;
+  background-color: var(--color3);
+  color: var(--color4);
+}
+.tabs > p:first-child {
+  border-width: 3px 2px 0 3px;
+}
+.tabs > p:last-child {
+  border-width: 3px 3px 0 2px;
+}
+.tabs > .selected-tab {
+  background-color: var(--color4);
+  color: var(--color3);
+}
+
+.sidebar {
   max-width: 15rem;
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
-.active-chats {
+#sidebar-display {
   background-color: var(--color4);
   height: 100%;
 }

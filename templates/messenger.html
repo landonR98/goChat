@@ -9,9 +9,13 @@
   {{template "Header" .}}
 
   <main class="messenger">
-    <div class="chat-rooms">
-      <h2>chat rooms</h2>
-      <div class="active-chats">
+    <div class="sidebar">
+      <div class="tabs">
+        <p class="selected-tab" id="chatroomsTabBtn">chat rooms</p>
+        <p id="invitesTabBtn">invites</p>
+        <p id="usersTabBtn">users</p>
+      </div>
+      <div id="sidebar-display">
         no active chats
       </div>
     </div>
@@ -22,12 +26,13 @@
       </div>
       <div class="message-form">
         <form action="">
-          <textarea name="" id="" cols="30" rows="10"></textarea>
+          <textarea></textarea>
           <button>send</button>
         </form>
       </div>
     </div>
   </main>
+  <script src="/public/messenger.js"></script>
 </body>
 
 </html>

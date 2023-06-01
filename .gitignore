@@ -1,4 +1,6 @@
 .env
 .git
 .vscode
-goChat 
+goChat
+*.code-workspace
+*.js
