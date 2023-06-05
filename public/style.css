@@ -4,6 +4,7 @@
   --color2-light: #007a83;
   --color3: #a93800;
   --color4: #e6f4f1;
+  --color5: grey;
 }
 
 * {
@@ -24,21 +25,21 @@ header {
   justify-content: space-between;
   background-color: var(--color2);
   color: var(--color3);
-  height: 2.5em;
+  height: 2.5rem;
 }
 
 header h1 {
   margin: 0 1em;
 }
-header div {
+header > div {
   margin: 0 1em;
   padding: auto 100px;
+  line-height: 2.4em;
   background-color: var(--color4);
   border: 1px solid var(--color3);
-  display: flex;
-  align-items: center;
+  flex-direction: column;
 }
-header div:hover {
+header > div:hover {
   background-color: var(--color3);
   border-color: var(--color4);
   color: var(--color4);
@@ -100,12 +101,14 @@ input[type="submit"]:hover {
 
 .tabs {
   display: flex;
-  overflow-y: auto;
+  border-collapse: collapse;
 }
 .tabs > p {
+  width: 100%;
+  min-width: fit-content;
   border-style: solid;
   border-color: var(--color2);
-  border-width: 3px 2px 0;
+  border-width: 3px 2px 2px;
   border-top-right-radius: 20%;
   margin: 0;
   padding: 0 2px;
@@ -113,14 +116,15 @@ input[type="submit"]:hover {
   color: var(--color4);
 }
 .tabs > p:first-child {
-  border-width: 3px 2px 0 3px;
+  border-width: 3px 2px 2px 2px;
 }
 .tabs > p:last-child {
-  border-width: 3px 3px 0 2px;
+  border-width: 3px 2px 2px 2px;
 }
 .tabs > .selected-tab {
   background-color: var(--color4);
   color: var(--color3);
+  border-bottom: none;
 }
 
 .sidebar {
@@ -133,38 +137,84 @@ input[type="submit"]:hover {
 #sidebar-display {
   background-color: var(--color4);
   height: 100%;
+  border: 2px solid var(--color2);
+  border-top: none;
+  padding: 5px;
+}
+#search-box {
+  display: flex;
+  width: 100%;
+}
+#search-box > input {
+  width: 100%;
+}
+#open-tab {
+  margin-top: 5px;
+  overflow-y: auto;
 }
 
-.chat {
+.preview {
+  background-color: var(--color2);
+  color: var(--color4);
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 5px;
+}
+.preview:hover {
+  background-color: var(--color2-light);
+}
+.chatroom-preview span {
+  color: var(--color5);
+}
+
+#chat {
   display: flex;
   flex-direction: column;
   height: 100%;
   border-left: 2px solid var(--color2);
 }
 
-.message-box {
+#message-box {
   height: 100%;
   overflow-y: scroll;
   margin: 0.5rem;
   background-color: var(--color4);
 }
 
-.message-form {
+#message-form {
   width: 100%;
   border-top: 2px solid var(--color2);
 }
-.message-form > form {
+#message-form > form {
   width: 100%;
   height: 100%;
   display: flex;
   padding: 0.5rem;
 }
-.message-form > form > textarea {
+#message-form > form > textarea {
   width: 100%;
   height: 5rem;
   margin-right: 1rem;
 }
-.message-form > form button {
+#message-form > form button {
   height: 100%;
   aspect-ratio: 1/1;
+}
+.dropdown {
+  position: relative;
+}
+.dropdown-display {
+  display: none;
+  position: absolute;
+  z-index: 1;
+  background-color: var(--color4);
+  color: var(--color3);
+  width: 100%;
+}
+.dropdown-display:hover {
+  background-color: var(--color4);
+  color: var(--color3);
+}
+
+.dropdown:hover .dropdown-display {
+  display: block;
 }
