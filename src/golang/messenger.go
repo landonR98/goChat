@@ -26,15 +26,13 @@ type messageStruct struct {
 
 func handleGetInvites(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
-	session, err := SessionStore.Get(req, "goChat")
-	CheckErr(err)
+	user, session := GetUserSession(req)
 	if session.IsNew {
-		http.Error(res, err.Error(), http.StatusBadRequest)
+		http.Error(res, "you are not logged in", http.StatusBadRequest)
 		return
 	}
-	userId := session.Values["userId"]
 	sql := "SELECT cp.id, c.name FROM chat_participants cp JOIN chats c ON cp.chat_id = c.id WHERE cp.user_id = ? AND cp.accepted_invite = 0"
-	inviteQuery, err := DB.Query(sql, userId)
+	inviteQuery, err := DB.Query(sql, user.Id)
 	CheckErr(err)
 	defer inviteQuery.Close()
 	var inviteList []chatroomSidebarResponse
@@ -55,14 +53,12 @@ func handleGetInvites(res http.ResponseWriter, req *http.Request) {
 
 func handleGetUsers(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
-	session, err := SessionStore.Get(req, "goChat")
-	CheckErr(err)
+	user, session := GetUserSession(req)
 	if session.IsNew {
-		http.Error(res, err.Error(), http.StatusBadRequest)
+		http.Error(res, "you are not logged in", http.StatusBadRequest)
 		return
 	}
-	userId := session.Values["userId"]
-	users, err := DB.Query("SELECT username, id FROM users where id != ?", userId)
+	users, err := DB.Query("SELECT username, id FROM users where id != ?", user.Id)
 	CheckErr(err)
 	defer users.Close()
 	var userList []chatroomSidebarResponse
@@ -83,15 +79,13 @@ func handleGetUsers(res http.ResponseWriter, req *http.Request) {
 
 func handleGetChatrooms(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
-	session, err := SessionStore.Get(req, "goChat")
-	CheckErr(err)
+	user, session := GetUserSession(req)
 	if session.IsNew {
-		http.Error(res, err.Error(), http.StatusBadRequest)
+		http.Error(res, "you are not logged in", http.StatusBadRequest)
 		return
 	}
-	userId := session.Values["userId"]
 	sql := "SELECT c.name, c.id FROM chats c JOIN chat_participants cp ON cp.chat_id = c.id where cp.user_id = ? AND cp.accepted_invite = 1;"
-	chatQuery, err := DB.Query(sql, userId)
+	chatQuery, err := DB.Query(sql, user.Id)
 	CheckErr(err)
 	defer chatQuery.Close()
 	var chatList []chatroomSidebarResponse

@@ -2,8 +2,11 @@
 <header>
   <h1>GoChat</h1>
   {{if .LoggedIn}}
-  <div>
+  <div class="dropdown">
     <h2>{{.Name}}</h2>
+    <div class="dropdown-display">
+      <p id="logout-btn">log out</p>
+    </div>
   </div>
   {{end}}
 </header>

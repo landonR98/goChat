@@ -187,11 +187,20 @@ const sendMessage = (e: Event) => {
     .catch((err) => console.error(err));
 };
 
+const handleLogout = () => {
+  console.log("logout");
+  fetch("/logout")
+    .then((response) => response.json())
+    .then((response) => console.log(response))
+    .catch((err) => console.log(err));
+};
+
 document
   .querySelector("#chatroomsTabBtn")
   .addEventListener("click", getChatrooms);
 document.querySelector("#invitesTabBtn").addEventListener("click", getInvites);
 document.querySelector("#usersTabBtn").addEventListener("click", getUsers);
 document.querySelector("#message-form").addEventListener("submit", sendMessage);
+document.querySelector("#logout-btn").addEventListener("click", handleLogout);
 
 getChatrooms();
