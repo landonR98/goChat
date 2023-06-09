@@ -11,6 +11,10 @@
   box-sizing: border-box;
 }
 
+a {
+  text-decoration: none;
+}
+
 html,
 body {
   margin: 0;
@@ -18,6 +22,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: var(--color1);
+  color: var(--color2);
 }
 
 header {
@@ -30,6 +35,7 @@ header {
 
 header h1 {
   margin: 0 1em;
+  color: var(--color3);
 }
 header > div {
   margin: 0 1em;
@@ -80,7 +86,7 @@ form > label {
 button,
 input[type="submit"] {
   background-color: var(--color2);
-  color: white;
+  color: var(--color4);
   padding: 0.3em 0.4em 0.5em;
   border: none;
 }
@@ -140,6 +146,8 @@ input[type="submit"]:hover {
   border: 2px solid var(--color2);
   border-top: none;
   padding: 5px;
+  display: flex;
+  flex-direction: column;
 }
 #search-box {
   display: flex;
@@ -150,7 +158,13 @@ input[type="submit"]:hover {
 }
 #open-tab {
   margin-top: 5px;
+  height: 100%;
   overflow-y: auto;
+}
+#new-group-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .preview {
@@ -206,15 +220,54 @@ input[type="submit"]:hover {
   display: none;
   position: absolute;
   z-index: 1;
-  background-color: var(--color4);
-  color: var(--color3);
+  background-color: var(--color3);
+  color: var(--color4);
   width: 100%;
-}
-.dropdown-display:hover {
-  background-color: var(--color4);
-  color: var(--color3);
 }
 
 .dropdown:hover .dropdown-display {
   display: block;
+  flex-direction: column;
+}
+
+.dropdown-display p {
+  color: inherit;
+  background-color: inherit;
+  text-align: center;
+}
+
+.dropdown-display a {
+  display: flex;
+}
+.dropdown-display button {
+  margin: 1em;
+  width: 100%;
+}
+
+.modal {
+  display: none;
+  z-index: 2;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.25);
+  justify-content: center;
+  align-items: center;
+}
+.modal > div {
+  background-color: var(--color4);
+  padding: 1em;
+  border-radius: 10px;
+}
+.modal > div > label {
+  margin-bottom: 1em;
+  display: inline-block;
+}
+.modal-btns {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
 }

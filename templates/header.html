@@ -1,11 +1,15 @@
 {{define "Header"}}
 <header>
-  <h1>GoChat</h1>
+  <a href="/">
+    <h1>GoChat</h1>
+  </a>
   {{if .LoggedIn}}
   <div class="dropdown">
     <h2>{{.Name}}</h2>
     <div class="dropdown-display">
-      <p id="logout-btn">log out</p>
+      <a href="/logout">
+        <button>log out</button>
+      </a>
     </div>
   </div>
   {{end}}

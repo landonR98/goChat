@@ -23,6 +23,9 @@
         <div id="open-tab">
           no active chats
         </div>
+        <div id="new-group-btn-container">
+          <button id="new-group-btn"> new chat group </button>
+        </div>
       </div>
     </div>
     <div id="chat">
@@ -38,6 +41,19 @@
       </div>
     </div>
   </main>
+  <div class="modal" id="new-chatroom-modal">
+    <div>
+      <label for="new-chatroom-name">
+        New Chatroom Name:
+        <br>
+        <input type="text" name="new-chatroom-name">
+      </label><br>
+      <div class="modal-btns">
+        <button id="chatroom-modal-cancel">Cancel</button>
+        <button id="submit-new-chatroom">Submit</button>
+      </div>
+    </div>
+  </div>
   <script src="/public/messenger.js"></script>
 </body>
 

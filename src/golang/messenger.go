@@ -24,6 +24,87 @@ type messageStruct struct {
 	Message string
 }
 
+func handleAcceptInvite(res http.ResponseWriter, req *http.Request) {
+	user, session := GetUserSession(req)
+	if session.IsNew {
+		http.Error(res, "you are not logged in", http.StatusBadRequest)
+		return
+	}
+
+	bodyStruct := struct {
+		InviteId int
+	}{}
+	err := json.NewDecoder(req.Body).Decode(&bodyStruct)
+	CheckErr(err)
+
+	var inviteExists bool
+	sql := "SELECT count(1) FROM chat_participants where id = ? AND user_id = ? LIMIT 1"
+	CheckErr(DB.QueryRow(sql, bodyStruct.InviteId, user.Id).Scan(&inviteExists))
+
+	if inviteExists {
+		sql = "UPDATE chat_participants SET accepted_invite = 1 WHERE id = ?"
+		_, err = DB.Exec(sql, bodyStruct.InviteId)
+		CheckErr(err)
+	}
+	res.WriteHeader(http.StatusOK)
+}
+
+func handleSendInvite(res http.ResponseWriter, req *http.Request) {
+	user, session := GetUserSession(req)
+	if session.IsNew {
+		http.Error(res, "you are not logged in", http.StatusBadRequest)
+		return
+	}
+
+	bodyStruct := struct {
+		UserId int
+		ChatId int
+	}{}
+	err := json.NewDecoder(req.Body).Decode(&bodyStruct)
+	CheckErr(err)
+
+	userCh := make(chan bool)
+	go user.InChatAsync(bodyStruct.ChatId, userCh)
+
+	var alreadyInvited bool
+	sql := "SELECT count(1) FROM chats c JOIN chat_participants cp ON cp.chat_id = c.id where cp.user_id = ? AND c.id = ? LIMIT 1"
+	CheckErr(DB.QueryRow(sql, bodyStruct.UserId, bodyStruct.ChatId).Scan(&alreadyInvited))
+
+	userInChat := <-userCh
+
+	if userInChat && !alreadyInvited {
+		sql = "INSERT INTO chat_participants (user_id, chat_id) VALUES(?,?)"
+		_, err = DB.Exec(sql, bodyStruct.UserId, bodyStruct.ChatId)
+		CheckErr(err)
+	}
+	res.WriteHeader(http.StatusOK)
+}
+
+func handleCreateChatroom(res http.ResponseWriter, req *http.Request) {
+	user, session := GetUserSession(req)
+	if session.IsNew {
+		http.Error(res, "you are not logged in", http.StatusBadRequest)
+		return
+	}
+
+	bodyStruct := struct {
+		Name string
+	}{}
+	err := json.NewDecoder(req.Body).Decode(&bodyStruct)
+	CheckErr(err)
+
+	sql := "INSERT INTO chats (name, creator) VALUES(?,?)"
+	query, err := DB.Exec(sql, bodyStruct.Name, user.Id)
+	CheckErr(err)
+	insertId, err := query.LastInsertId()
+	CheckErr(err)
+	sql = "INSERT INTO chat_participants (user_id, chat_id, accepted_invite) VALUES(?,?,1)"
+	_, err = DB.Exec(sql, user.Id, insertId)
+	CheckErr(err)
+
+	res.WriteHeader(http.StatusOK)
+}
+
 func handleGetInvites(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	user, session := GetUserSession(req)
@@ -173,15 +254,7 @@ func handleSendMessage(res http.ResponseWriter, req *http.Request) {
 	CheckErr(err)
 	fmt.Println(result.RowsAffected())
 
-	successMsg := struct {
-		Ok bool
-	}{true}
-	successJson, err := json.Marshal(successMsg)
-	if err != nil {
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	res.Write(successJson)
+	res.WriteHeader(http.StatusOK)
 }
 
 func RegisterMessengerRoutes(router *mux.Router, templates *template.Template) {
@@ -206,4 +279,7 @@ func RegisterMessengerRoutes(router *mux.Router, templates *template.Template) {
 	router.HandleFunc("/chatrooms", handleGetChatrooms).Methods("GET")
 	router.HandleFunc("/messages", handleGetMessages).Methods("POST")
 	router.HandleFunc("/send", handleSendMessage).Methods("POST")
+	router.HandleFunc("/createChatroom", handleCreateChatroom).Methods("POST")
+	router.HandleFunc("/sendInvite", handleSendInvite).Methods("POST")
+	router.HandleFunc("/acceptInvite", handleAcceptInvite).Methods("POST")
 }
