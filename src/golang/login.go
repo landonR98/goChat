@@ -21,6 +21,7 @@ const loginPage string = "login.html"
 func handleLogout(res http.ResponseWriter, req *http.Request) {
 	_, session := GetUserSession(req)
 	session.Options.MaxAge = -1
+	session.Options.SameSite = http.SameSiteStrictMode
 	session.Save(req, res)
 	http.Redirect(res, req, "/", http.StatusSeeOther)
 }
@@ -51,8 +52,9 @@ func handleLogin(res http.ResponseWriter, req *http.Request, templates *template
 				return
 			}
 			session.Options = &sessions.Options{
-				Path:   "/",
-				MaxAge: 86400,
+				Path:     "/",
+				MaxAge:   86400,
+				SameSite: http.SameSiteLaxMode,
 			}
 
 			session.Values["name"] = tmplData.Name
