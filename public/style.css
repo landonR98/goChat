@@ -150,7 +150,8 @@ input[type="submit"]:hover {
   flex-direction: column;
 }
 #search-box {
-  display: flex;
+  display: none;
+  /* display: flex; */
   width: 100%;
 }
 #search-box > input {

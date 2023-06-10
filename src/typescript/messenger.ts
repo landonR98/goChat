@@ -6,6 +6,7 @@ type Chatroom = ChatAPISidebarResponse;
 type ChatMessage = {
   Name: string;
   Message: string;
+  Id: number;
 };
 
 enum SideBarTab {
@@ -15,6 +16,7 @@ enum SideBarTab {
 }
 
 let currentChatroom: Chatroom;
+let lastMessageId: number;
 
 const openTabEl: HTMLDivElement = document.querySelector("#open-tab");
 const messageBoxEl: HTMLDivElement = document.querySelector("#message-box");
@@ -37,7 +39,7 @@ const populateChatroom = (messages: ChatMessage[]) => {
 const getChatMessages = async (chatroom: Chatroom) => {
   const messages: ChatMessage[] = await fetch("/messages", {
     method: "POST",
-    body: JSON.stringify({ Id: chatroom.Id }),
+    body: JSON.stringify({ Id: chatroom.Id, LastMessage: -1 }),
   })
     .then((response) => response.json() as Promise<ChatMessage[] | null>)
     .catch((err) => {
@@ -46,13 +48,41 @@ const getChatMessages = async (chatroom: Chatroom) => {
     });
   if (messages != null) {
     populateChatroom(messages);
+    lastMessageId = messages[messages.length - 1].Id;
   } else {
-    console.log("no messages");
-    populateChatroom([{ Name: "", Message: "No messages in this chatroom" }]);
+    populateChatroom([
+      { Name: "", Message: "No messages in this chatroom", Id: -1 },
+    ]);
+    lastMessageId = -1;
   }
   (document.querySelector("#chatroom-name") as HTMLParagraphElement).innerText =
     chatroom.Name;
   currentChatroom = chatroom;
+};
+
+const checkNewMessages = async () => {
+  const messages: ChatMessage[] = await fetch("/messages", {
+    method: "POST",
+    body: JSON.stringify({
+      Id: currentChatroom.Id,
+      LastMessage: lastMessageId,
+    }),
+  })
+    .then((response) => response.json() as Promise<ChatMessage[]>)
+    .catch((err) => {
+      console.error(err);
+      return null;
+    });
+  if (messages != null && messages.length != 0) {
+    if (lastMessageId === -1) {
+      populateChatroom(messages);
+    } else {
+      for (let message of messages) {
+        appendChatMessage(message);
+      }
+    }
+    lastMessageId = messages[messages.length - 1].Id;
+  }
 };
 
 const setSidebarLoading = () => {
@@ -109,7 +139,7 @@ const getChatrooms = async () => {
       const idEl = document.createElement("span");
       idEl.innerText = ` #${chatroom.Id}`;
       chatroomEl.addEventListener("click", () => {
-        getChatMessages(chatroom).catch((err) => console.log(err));
+        getChatMessages(chatroom).catch((err) => console.error(err));
       });
 
       nameEl.appendChild(idEl);
@@ -117,7 +147,7 @@ const getChatrooms = async () => {
       openTabEl.appendChild(chatroomEl);
     });
     if (currentChatroom == undefined) {
-      getChatMessages(chatrooms[0]).catch((err) => console.log(err));
+      getChatMessages(chatrooms[0]).catch((err) => console.error(err));
     }
   }
 };
@@ -151,10 +181,10 @@ const getInvites = async () => {
           })
             .then((response) => {
               if (response.status === 200)
-                getInvites().catch((err) => console.log(err));
+                getInvites().catch((err) => console.error(err));
               else console.log("failed to accept invite");
             })
-            .catch((err) => console.log(err));
+            .catch((err) => console.error(err));
         }
       });
       inviteEl.appendChild(nameEl);
@@ -181,8 +211,9 @@ const getUsers = async () => {
       const nameEl = document.createElement("p");
       nameEl.innerText = user.Name;
       userEl.addEventListener("click", () => {
-        if (confirm(`invite ${user.Name} to open group`)) {
-          fetch("/acceptInvite", {
+        if (confirm(`invite ${user.Name} to ${currentChatroom.Name}`)) {
+          console.log("send invite");
+          fetch("/sendInvite", {
             method: "POST",
             body: JSON.stringify({
               ChatId: currentChatroom.Id,
@@ -190,18 +221,14 @@ const getUsers = async () => {
             }),
           })
             .then((response) => {
-              if (response.status === 200)
-                getInvites().catch((err) => console.log(err));
-              else console.log("failed to send invite");
+              if (response.status !== 200) console.log("failed to send invite");
             })
-            .catch((err) => console.log(err));
+            .catch((err) => console.error(err));
         }
       });
       userEl.appendChild(nameEl);
       openTabEl.appendChild(userEl);
     });
-  } else {
-    console.log("no chat rooms");
   }
 };
 
@@ -210,15 +237,15 @@ const sendMessage = async (e: Event) => {
   const message = (
     document.querySelector('textarea[name="Message"]') as HTMLTextAreaElement
   ).value;
-  console.log(currentChatroom, message);
-  const response = await fetch("/send", {
+  const response: Response = await fetch("/send", {
     method: "POST",
     body: JSON.stringify({ ChatId: currentChatroom.Id, Message: message }),
-  })
-    .then((response) => response.json() as Promise<{ Ok: boolean }>)
-    .catch((err) => console.error(err));
-  if (response !== null) {
-    getChatMessages(currentChatroom).catch((err) => console.log(err));
+  }).catch((err) => {
+    console.error(err);
+    return null;
+  });
+  if (response !== null && response.status === 200) {
+    getChatMessages(currentChatroom).catch((err) => console.error(err));
     (
       document.querySelector('textarea[name="Message"]') as HTMLTextAreaElement
     ).value = "";
@@ -227,7 +254,6 @@ const sendMessage = async (e: Event) => {
 
 const createNewChat = async (e: Event) => {
   e.preventDefault();
-  console.log("create new chat room");
   const name = (<HTMLInputElement>(
     document.querySelector('input[name="new-chatroom-name"]')
   )).value;
@@ -235,7 +261,6 @@ const createNewChat = async (e: Event) => {
     method: "POST",
     body: JSON.stringify({ Name: name }),
   });
-  console.log(response);
 };
 
 const openNewChatModal = (e: Event) => {
@@ -266,8 +291,16 @@ document
 document
   .querySelector("#submit-new-chatroom")
   .addEventListener("click", (e) => {
-    createNewChat(e).catch((err) => console.log(err));
-    closeNewChatModal(e);
-    getChatrooms().catch((err) => console.log(err));
+    (async (e) => {
+      await createNewChat(e).catch((err) => console.error(err));
+      closeNewChatModal(e);
+      await getChatrooms().catch((err) => console.error(err));
+    })(e);
   });
-getChatrooms().catch((err) => console.log(err));
+getChatrooms().catch((err) => console.error(err));
+
+setInterval(async () => {
+  if (currentChatroom != null) {
+    await checkNewMessages();
+  }
+}, 10000);

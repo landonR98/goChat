@@ -22,6 +22,7 @@ type chatroomSidebarResponse struct {
 type messageStruct struct {
 	Name    string
 	Message string
+	Id      int
 }
 
 func handleAcceptInvite(res http.ResponseWriter, req *http.Request) {
@@ -194,7 +195,8 @@ func handleGetMessages(res http.ResponseWriter, req *http.Request) {
 	}
 
 	bodyStruct := struct {
-		Id int
+		Id          int
+		LastMessage int
 	}{}
 	err := json.NewDecoder(req.Body).Decode(&bodyStruct)
 	CheckErr(err)
@@ -202,14 +204,14 @@ func handleGetMessages(res http.ResponseWriter, req *http.Request) {
 	ch := make(chan bool)
 	go user.InChatAsync(bodyStruct.Id, ch)
 
-	sql := "SELECT u.username, m.message FROM message m JOIN users u on m.user_id = u.id WHERE m.chat_id = ? ORDER BY m.id"
+	sql := "SELECT u.username, m.message, m.id FROM message m JOIN users u on m.user_id = u.id WHERE m.chat_id = ? ORDER BY m.id"
 	messageQuery, err := DB.Query(sql, bodyStruct.Id)
 	CheckErr(err)
 	defer messageQuery.Close()
 	var messageList []messageStruct
 	for messageQuery.Next() {
 		var message messageStruct
-		if err := messageQuery.Scan(&message.Name, &message.Message); err != nil {
+		if err := messageQuery.Scan(&message.Name, &message.Message, &message.Id); err != nil {
 			CheckErr(err)
 		}
 		messageList = append(messageList, message)
@@ -219,6 +221,20 @@ func handleGetMessages(res http.ResponseWriter, req *http.Request) {
 	if !userInChat {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	if bodyStruct.LastMessage != -1 {
+		var lastMessageIndex int
+		for i, message := range messageList {
+			if message.Id == bodyStruct.LastMessage {
+				lastMessageIndex = i
+			}
+		}
+		if len(messageList) != lastMessageIndex {
+			messageList = messageList[lastMessageIndex+1:]
+		} else {
+			messageList = make([]messageStruct, 0)
+		}
 	}
 
 	messageJson, err := json.Marshal(messageList)
