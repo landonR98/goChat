@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,22 +67,4 @@ func GetUserSession(req *http.Request) (*User, *sessions.Session) {
 	user.Id = session.Values["userId"].(int)
 	user.Name = session.Values["name"].(string)
 	return &user, session
-}
-
-func SendJson(res http.ResponseWriter, req *http.Request, makeQuery func(*User) []any) {
-	res.Header().Set("Content-Type", "application/json")
-	user, session := GetUserSession(req)
-	if session.IsNew {
-		http.Error(res, "you are not logged in", http.StatusBadRequest)
-		return
-	}
-
-	queryList := makeQuery(user)
-
-	invitesJson, err := json.Marshal(queryList)
-	if err != nil {
-		http.Error(res, err.Error(), http.StatusBadRequest)
-		return
-	}
-	res.Write(invitesJson)
 }
