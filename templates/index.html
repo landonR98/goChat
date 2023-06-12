@@ -6,15 +6,21 @@
 </head>
 
 <body>
-  <header>
-    <h1>Welcome to GoChat</h1>
-  </header>
+  {{template "Header"}}
 
-  <body>
-    <a href="/login"><button>Login</button></a>
-    <a href="/signup"><button>signup</button></a>
-    <a href="/messenger"><button>messenger</button></a>
-  </body>
+  <main class="center-content">
+    <h1>Welcome to goChat</h1>
+    <div class="horizontal-split">
+      <div class="card">
+        <h2>Already have an account</h2>
+        <a href="/login"><button>Login</button></a>
+      </div>
+      <div class="card">
+        <h2>Don't have an account</h2>
+        <a href="/signup"><button>signup</button></a>
+      </div>
+    </div>
+  </main>
 </body>
 
 </html>
