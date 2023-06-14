@@ -3,7 +3,10 @@
 ## building from source
 
 you will need a go compiler. install using your operating systems package manager or download from go.dev and follow the instructions on the website.<br>
-compile: `go build`<br>
+
+you will also need the typescript compiler from npm.
+
+to compile just run the compile.sh script<br>
 run: `./goChat`
 
 ### .env file with the following variables is required
