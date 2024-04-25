@@ -4,39 +4,31 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"html/template"
+	"landonRyan/goChat/model/db"
+	"landonRyan/goChat/util"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 func main() {
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration the server waits for existing connections to finish")
+	useSqlite := flag.Bool("sqlite", false, "use sqlite database")
 	flag.Parse()
 
-	LoadEnv()
+	util.LoadEnv()
 
-	DatabaseInit()
-	defer DB.Close()
+	if *useSqlite {
+		db.DatabaseInitSqlite()
+	} else {
+		db.DatabaseInitMysql()
+	}
+	defer db.CloseDB()
 
-	templates := template.Must(template.ParseGlob("templates/*.html"))
-
-	router := mux.NewRouter()
-
-	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("./public/"))))
-
-	RegisterSignupRoutes(router, templates)
-	RegisterLoginRoutes(router, templates)
-	RegisterMessengerRoutes(router, templates)
-
-	router.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		templates.ExecuteTemplate(res, "index.html", nil)
-	})
+	router := NewRouter()
 
 	server := &http.Server{
 		Handler:      router,
