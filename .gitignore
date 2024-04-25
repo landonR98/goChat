@@ -5,3 +5,4 @@ goChat
 *.code-workspace
 *.js
 node_modules
+database.db
